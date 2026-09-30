@@ -1,0 +1,19 @@
+CREATE OR REPLACE PACKAGE PROVA.PKG_X AS
+    -- Elabora le tabelle di prova
+    PROCEDURE ELABORA;
+END PKG_X;
+/
+
+CREATE OR REPLACE PACKAGE BODY PROVA.PKG_X AS
+    PROCEDURE ELABORA IS
+        v_tabella VARCHAR2(30) := 'T_C';
+    BEGIN
+        -- qui non si legge PROVA.T_C: è solo un commento
+        DELETE FROM PROVA.T_A WHERE IMPORTO = 0;
+
+        UPDATE PROVA.T_B SET STATO = 'CHIUSO' WHERE DATA_RIF < SYSDATE;
+
+        EXECUTE IMMEDIATE 'TRUNCATE TABLE PROVA.' || v_tabella;
+    END ELABORA;
+END PKG_X;
+/

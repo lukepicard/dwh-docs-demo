@@ -1,0 +1,5 @@
+CREATE TABLE PROVA.T_C
+(
+    ID        NUMBER(10)  NOT NULL,
+    IMPORTO   NUMBER(18,2)
+);

@@ -1,0 +1,75 @@
+name: Schede di oggetto
+
+on:
+  # Aggiornamento veloce, legato al codice appena modificato.
+  push:
+    branches: [main]
+    paths:
+      - "sql/**"
+      - "script/**"
+      - "powercenter/**"
+  # Ricostruzione completa ogni notte. Nella realtà intercetta gli impatti che
+  # arrivano da altri repository (un oggetto letto da codice che non sta qui) e
+  # rigenera tutte le schede quando migliora lo script di analisi.
+  schedule:
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+
+# Mai due generazioni insieme: la seconda aspetta la fine della prima.
+concurrency:
+  group: schede-di-oggetto
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  genera:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Storia completa: serve al controllo "nota da verificare", che
+          # confronta la data dell'ultimo commit del sorgente e della nota.
+          fetch-depth: 0
+
+      # Il front pubblico viene ricreato con un solo commit: lì tutti i file
+      # hanno la stessa data e l'avviso "nota da verificare" non può comparire.
+      # Le schede committate dal lab contengono già l'avviso della demo;
+      # rigenerarle (la prima notte o al push del commit unico) lo cancellerebbe.
+      # Con un solo commit, quindi, la generazione viene saltata.
+      - name: Controlla la storia
+        id: storia
+        run: echo "commit=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Storia minima, generazione saltata
+        if: steps.storia.outputs.commit == '1'
+        run: |
+          echo "Repository con un solo commit: le schede committate restano come sono."
+
+      - uses: actions/setup-python@v5
+        if: steps.storia.outputs.commit != '1'
+        with:
+          python-version: "3.12"
+
+      - name: Test
+        if: steps.storia.outputs.commit != '1'
+        run: python -m unittest -v
+
+      - name: Genera le schede
+        if: steps.storia.outputs.commit != '1'
+        run: python tools/impact_analysis/impact_analysis.py --tutto
+
+      - name: Commit delle schede, se sono cambiate
+        if: steps.storia.outputs.commit != '1'
+        run: |
+          if [ -z "$(git status --porcelain -- docs/oggetti)" ]; then
+            echo "Schede invariate."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/oggetti
+          git commit -m "Schede di oggetto rigenerate [skip ci]"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

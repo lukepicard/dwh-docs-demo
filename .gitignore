@@ -1,0 +1,9 @@
+# File generati da Jekyll in locale
+_site/
+.jekyll-cache/
+.sass-cache/
+
+# File di sistema
+.DS_Store
+Thumbs.db
+__pycache__/

@@ -1,0 +1,7 @@
+// Schema colori "dwh": base chiara di Just the Docs con colore primario blu.
+// Si attiva con color_scheme: dwh in _config.yml.
+$link-color: $colore-primario;
+$btn-primary-color: $colore-primario;
+$body-heading-color: $colore-primario;
+$sidebar-color: $colore-primario-chiaro;
+$feedback-color: darken($colore-primario-chiaro, 3%);

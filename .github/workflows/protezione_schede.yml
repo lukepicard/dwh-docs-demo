@@ -1,0 +1,71 @@
+name: Protezione delle schede
+
+# Le schede in docs/oggetti/ le scrive solo lo script. Questo controllo
+# fallisce se un commit che non è del bot le modifica e il contenuto non
+# coincide con quello generato dal codice (cioè: qualcuno le ha ritoccate a
+# mano). Chi rigenera le schede in locale e committa il risultato passa,
+# perché l'output del generatore è deterministico.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  controlla:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Nessuna modifica a mano in docs/oggetti
+        env:
+          EVENTO: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          TESTA: ${{ github.event.pull_request.head.sha }}
+          PRIMA: ${{ github.event.before }}
+        run: |
+          set -eu
+          ZERI=0000000000000000000000000000000000000000
+          if [ "$EVENTO" = "pull_request" ]; then
+            COMMITS=$(git rev-list "$BASE..$TESTA")
+          elif [ -z "$PRIMA" ] || [ "$PRIMA" = "$ZERI" ] || ! git cat-file -e "$PRIMA^{commit}" 2>/dev/null; then
+            COMMITS=$(git rev-list -1 HEAD)
+          else
+            COMMITS=$(git rev-list "$PRIMA..$GITHUB_SHA")
+          fi
+
+          SOSPETTI=""
+          for C in $COMMITS; do
+            # Commit radice (il front pubblico ricreato con un solo commit):
+            # contiene legittimamente anche le schede, si salta.
+            if [ "$(git rev-list --parents -n 1 "$C" | wc -w)" -eq 1 ]; then
+              echo "Commit radice $C: controllo saltato."
+              continue
+            fi
+            AUTORE=$(git log -1 --format=%an "$C")
+            if [ "$AUTORE" = "github-actions[bot]" ]; then
+              continue
+            fi
+            if git diff-tree --no-commit-id --name-only -r "$C" -- docs/oggetti | grep -q .; then
+              SOSPETTI="$SOSPETTI $C"
+            fi
+          done
+
+          if [ -z "$SOSPETTI" ]; then
+            echo "Nessun commit manuale su docs/oggetti."
+            exit 0
+          fi
+
+          echo "Commit non del bot che toccano docs/oggetti:$SOSPETTI"
+          python tools/impact_analysis/impact_analysis.py --tutto
+          if [ -n "$(git status --porcelain -- docs/oggetti)" ]; then
+            git --no-pager diff --stat -- docs/oggetti
+            echo "::error::Le schede sono generate: modifica la nota accanto al sorgente."
+            exit 1
+          fi
+          echo "Il contenuto di docs/oggetti coincide con quello generato: nessuna modifica a mano."

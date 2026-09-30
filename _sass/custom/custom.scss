@@ -1,0 +1,45 @@
+// Accenti in colore ambra sopra lo schema "dwh"
+
+// Titolo del sito nella barra laterale
+.site-title {
+  color: $colore-primario;
+  font-weight: 700;
+  font-size: 1.25rem !important;
+  line-height: 1.3;
+}
+
+// Voce di menu della pagina aperta: barra ambra a sinistra
+.nav-list .nav-list-item .nav-list-link.active {
+  box-shadow: inset 3px 0 0 $colore-accento;
+  font-weight: 600;
+}
+
+a:hover {
+  color: $colore-primario-scuro;
+}
+
+// Titolo principale della pagina sottolineato in ambra
+.main-content h1:first-of-type {
+  padding-bottom: 0.25em;
+  border-bottom: 3px solid $colore-accento;
+}
+
+// Citazioni (es. riquadri "Tipo / Schema / Flusso" dei README)
+blockquote {
+  margin-left: 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid $colore-accento;
+  background-color: $colore-primario-chiaro;
+}
+
+// Intestazioni delle tabelle
+.main-content th {
+  color: $colore-primario;
+  border-bottom: 2px solid $colore-accento;
+}
+
+// Ogni voce del riquadro (Tipo, Schema, Flusso…) su una riga, senza spazi eccessivi
+blockquote p {
+  margin-top: 0.15em;
+  margin-bottom: 0.15em;
+}

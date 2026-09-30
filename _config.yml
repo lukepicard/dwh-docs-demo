@@ -1,0 +1,33 @@
+# Configurazione del sito GitHub Pages
+title: Documentazione DWH
+description: Documentazione dimostrativa di un data warehouse (dati inventati)
+
+# Tema Just the Docs, caricato da GitHub
+remote_theme: just-the-docs/just-the-docs
+plugins:
+  - jekyll-remote-theme
+  - jekyll-relative-links
+
+# I link relativi tra file .md diventano link tra pagine del sito
+relative_links:
+  enabled: true
+  collections: true
+
+# Ricerca e aspetto
+search_enabled: true
+color_scheme: dwh
+heading_anchors: true
+
+# Diagrammi Mermaid nelle schede di oggetto (blocchi ```mermaid)
+mermaid:
+  version: "10.9.1"
+
+# File esclusi dal sito.
+# Le note di oggetto (i .md accanto ai sorgenti) non diventano pagine:
+# sul sito compaiono già dentro le schede di docs/oggetti/.
+exclude:
+  - CLAUDE.md
+  - sql/**/*.md
+  - script/**/*.md
+  - powercenter/**/*.md
+  - tools/
